@@ -9,6 +9,32 @@ fn count_lines(input: &[u8]) -> Result<u64> {
     Ok(count)
 }
 
+fn count_words(input: &[u8]) -> Result<u64> {
+    fn is_whitespace(c: u8) -> bool {
+        c == b'\r' || c == b'\n' || c == b' ' || c == b'\t'
+    }
+
+    let mut count = 0;
+
+    let mut it = input.iter().peekable();
+
+    while let Some(&c) = it.next() {
+        if !is_whitespace(c) {
+            count += 1;
+
+            while let Some(&c) = it.peek() {
+                if is_whitespace(*c) {
+                    break;
+                } else {
+                    let _ = it.next();
+                }
+            }
+        }
+    }
+
+    Ok(count)
+}
+
 fn main() {
     println!("Hello, world!");
 }
@@ -38,6 +64,18 @@ mod test {
         assert_eq!(
             super::count_lines(&get_test_input()).expect("count lines in string"),
             7_145
+        );
+    }
+
+    #[test]
+    fn counting_words_works() {
+        assert_eq!(
+            super::count_words("Hello world!".as_bytes()).expect("count words in string"),
+            2
+        );
+        assert_eq!(
+            super::count_words(&get_test_input()).expect("count words in string"),
+            58_164
         );
     }
 
