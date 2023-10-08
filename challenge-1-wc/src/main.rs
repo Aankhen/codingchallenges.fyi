@@ -29,6 +29,13 @@ fn count_words(input: &[u8]) -> Result<u64> {
     Ok(count)
 }
 
+fn count_characters(input: impl AsRef<[u8]>) -> Result<u64> {
+    Ok(String::from_utf8(input.as_ref().to_vec())?
+        .chars()
+        .count()
+        .try_into()?)
+}
+
 fn main() {
     println!("Hello, world!");
 }
@@ -70,6 +77,18 @@ mod test {
         assert_eq!(
             super::count_words(&get_test_input()).expect("count words in string"),
             58_164
+        );
+    }
+
+    #[test]
+    fn counting_characters_works() {
+        assert_eq!(
+            super::count_characters("Hello world!".as_bytes()).expect("count characters in string"),
+            12
+        );
+        assert_eq!(
+            super::count_characters(&get_test_input()).expect("count characters in string"),
+            339_292
         );
     }
 
