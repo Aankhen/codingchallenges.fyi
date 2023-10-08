@@ -22,13 +22,7 @@ fn count_words(input: &[u8]) -> Result<u64> {
         if !is_whitespace(c) {
             count += 1;
 
-            while let Some(&c) = it.peek() {
-                if is_whitespace(*c) {
-                    break;
-                } else {
-                    let _ = it.next();
-                }
-            }
+            while it.next_if(|&c| !is_whitespace(*c)).is_some() {}
         }
     }
 
