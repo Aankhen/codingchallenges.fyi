@@ -39,21 +39,27 @@ pub fn count_words(input: &mut impl Read) -> Result<u64> {
         c == b'\r' || c == b'\n' || c == b' ' || c == b'\t'
     }
 
+    let mut buf = [0; READ_BUFFER_SIZE];
     let mut count = 0;
-    let mut buf = vec![];
-    input.read_to_end(&mut buf)?;
 
-    let mut it = buf.iter().peekable();
+    let mut in_whitespace = true;
 
-    while let Some(&c) = it.next() {
-        if !is_whitespace(c) {
-            count += 1;
+    loop {
+        let bytes_read = input.read(&mut buf)?;
 
-            while it.next_if(|&c| !is_whitespace(*c)).is_some() {}
+        if bytes_read == 0 {
+            return Ok(count);
+        }
+
+        for c in &buf[0..bytes_read] {
+            if !is_whitespace(*c) && in_whitespace {
+                count += 1;
+                in_whitespace = false;
+            } else if is_whitespace(*c) {
+                in_whitespace = true;
+            }
         }
     }
-
-    Ok(count)
 }
 
 pub fn count_characters(input: &mut impl Read) -> Result<u64> {
