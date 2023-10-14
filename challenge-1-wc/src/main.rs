@@ -1,7 +1,7 @@
 use std::{
     ffi::OsString,
     fs::File,
-    io::{stdin, Read, StdinLock},
+    io::{stdin, BufReader, Read},
 };
 
 use anyhow::{anyhow, bail, Result};
@@ -14,21 +14,6 @@ struct Args {
     words: bool,
     characters: bool,
     file: Option<OsString>,
-}
-
-#[derive(Debug)]
-enum ReadWrapper<'a> {
-    Stdin(StdinLock<'a>),
-    File(File),
-}
-
-impl<'a> Read for ReadWrapper<'a> {
-    fn read(&mut self, buf: &mut [u8]) -> std::result::Result<usize, std::io::Error> {
-        match self {
-            ReadWrapper::Stdin(ref mut stdin) => stdin.read(buf),
-            ReadWrapper::File(ref mut file) => file.read(buf),
-        }
-    }
 }
 
 fn main() -> Result<()> {
@@ -51,25 +36,30 @@ fn main() -> Result<()> {
         args
     };
 
-    let mut input = if let Some(ref p) = args.file {
-        ReadWrapper::File(File::open(p)?)
-    } else {
-        ReadWrapper::Stdin(stdin().lock())
-    };
+    // This is a bit of a hack to abstract over `impl Read`.
+    fn do_count(args: &Args, input: &mut impl Read) -> Result<u64> {
+        if args.bytes {
+            count_bytes(input)
+        } else if args.lines {
+            count_lines(input)
+        } else if args.words {
+            count_words(input)
+        } else if args.characters {
+            count_characters(input)
+        } else {
+            bail!("no arguments specified");
+        }
+    }
 
-    let count = if args.bytes {
-        count_bytes(&mut input)
-    } else if args.lines {
-        count_lines(&mut input)
-    } else if args.words {
-        count_words(&mut input)
-    } else if args.characters {
-        count_characters(&mut input)
+    let count = if let Some(ref p) = args.file {
+        let mut reader = BufReader::new(File::open(p)?);
+        do_count(&args, &mut reader)
     } else {
-        bail!("no arguments specified");
-    };
+        let mut reader = BufReader::new(stdin().lock());
+        do_count(&args, &mut reader)
+    }?;
 
-    print!("{:>8}", count?);
+    print!("{:>8}", count);
 
     if let Some(p) = args.file {
         println!(" {}", p.to_string_lossy());
