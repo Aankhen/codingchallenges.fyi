@@ -4,7 +4,7 @@ use anyhow::Result;
 
 const READ_BUFFER_SIZE: usize = 512;
 
-fn count_bytes(input: &mut impl Read) -> Result<u64> {
+pub fn count_bytes(input: &mut impl Read) -> Result<u64> {
     let mut buf = vec![0; READ_BUFFER_SIZE];
     let mut count = 0;
 
@@ -19,7 +19,7 @@ fn count_bytes(input: &mut impl Read) -> Result<u64> {
     }
 }
 
-fn count_lines(input: &mut impl Read) -> Result<u64> {
+pub fn count_lines(input: &mut impl Read) -> Result<u64> {
     let mut buf = vec![0; READ_BUFFER_SIZE];
     let mut count = 0;
 
@@ -34,7 +34,7 @@ fn count_lines(input: &mut impl Read) -> Result<u64> {
     }
 }
 
-fn count_words(input: &mut impl Read) -> Result<u64> {
+pub fn count_words(input: &mut impl Read) -> Result<u64> {
     fn is_whitespace(c: u8) -> bool {
         c == b'\r' || c == b'\n' || c == b' ' || c == b'\t'
     }
@@ -56,7 +56,7 @@ fn count_words(input: &mut impl Read) -> Result<u64> {
     Ok(count)
 }
 
-fn count_characters(input: &mut impl Read) -> Result<u64> {
+pub fn count_characters(input: &mut impl Read) -> Result<u64> {
     let mut buf = vec![];
     input.read_to_end(&mut buf)?;
     Ok(String::from_utf8(buf)?.chars().count().try_into()?)

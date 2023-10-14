@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 anyhow = { version = "1.0.75", features = ["backtrace"] }
+lexopt = "0.3.0"
