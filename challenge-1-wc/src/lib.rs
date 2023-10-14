@@ -5,7 +5,7 @@ use anyhow::Result;
 const READ_BUFFER_SIZE: usize = 512;
 
 pub fn count_bytes(input: &mut impl Read) -> Result<u64> {
-    let mut buf = vec![0; READ_BUFFER_SIZE];
+    let mut buf = [0; READ_BUFFER_SIZE];
     let mut count = 0;
 
     loop {
@@ -20,7 +20,7 @@ pub fn count_bytes(input: &mut impl Read) -> Result<u64> {
 }
 
 pub fn count_lines(input: &mut impl Read) -> Result<u64> {
-    let mut buf = vec![0; READ_BUFFER_SIZE];
+    let mut buf = [0; READ_BUFFER_SIZE];
     let mut count = 0;
 
     loop {
