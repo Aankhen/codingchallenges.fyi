@@ -1,7 +1,7 @@
 use std::{
     ffi::OsString,
     fs::File,
-    io::{stdin, Read},
+    io::{stdin, BufReader, Read},
 };
 
 use anyhow::{anyhow, bail, Result};
@@ -37,9 +37,9 @@ fn main() -> Result<()> {
     };
 
     let mut input: Box<dyn Read> = if let Some(ref p) = args.file {
-        Box::new(File::open(p)?)
+        Box::new(BufReader::new(File::open(p)?))
     } else {
-        Box::new(stdin().lock())
+        Box::new(BufReader::new(stdin().lock()))
     };
 
     let count = if args.bytes {
