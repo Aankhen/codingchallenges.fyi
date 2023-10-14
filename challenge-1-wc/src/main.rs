@@ -1,7 +1,7 @@
 use std::{
     ffi::OsString,
     fs::File,
-    io::{stdin, BufReader, Read},
+    io::{stdin, Read, StdinLock},
 };
 
 use anyhow::{anyhow, bail, Result};
@@ -14,6 +14,21 @@ struct Args {
     words: bool,
     characters: bool,
     file: Option<OsString>,
+}
+
+#[derive(Debug)]
+enum ReadWrapper<'a> {
+    Stdin(StdinLock<'a>),
+    File(File),
+}
+
+impl<'a> Read for ReadWrapper<'a> {
+    fn read(&mut self, buf: &mut [u8]) -> std::result::Result<usize, std::io::Error> {
+        match self {
+            ReadWrapper::Stdin(ref mut stdin) => stdin.read(buf),
+            ReadWrapper::File(ref mut file) => file.read(buf),
+        }
+    }
 }
 
 fn main() -> Result<()> {
@@ -36,10 +51,10 @@ fn main() -> Result<()> {
         args
     };
 
-    let mut input: Box<dyn Read> = if let Some(ref p) = args.file {
-        Box::new(BufReader::new(File::open(p)?))
+    let mut input = if let Some(ref p) = args.file {
+        ReadWrapper::File(File::open(p)?)
     } else {
-        Box::new(BufReader::new(stdin().lock()))
+        ReadWrapper::Stdin(stdin().lock())
     };
 
     let count = if args.bytes {
