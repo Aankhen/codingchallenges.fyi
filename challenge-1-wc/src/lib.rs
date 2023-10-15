@@ -63,9 +63,44 @@ pub fn count_words(input: &mut impl Read) -> Result<u64> {
 }
 
 pub fn count_characters(input: &mut impl Read) -> Result<u64> {
-    let mut buf = vec![];
-    input.read_to_end(&mut buf)?;
-    Ok(String::from_utf8(buf)?.chars().count().try_into()?)
+    const TWO_BYTE_MARKER: u8 = 0b110;
+    const THREE_BYTE_MARKER: u8 = 0b1110;
+    const FOUR_BYTE_MARKER: u8 = 0b11110;
+
+    let mut buf = [0; READ_BUFFER_SIZE];
+    let mut count = 0;
+    let mut pending = 0;
+
+    loop {
+        let bytes_read = input.read(&mut buf)?;
+
+        if bytes_read == 0 {
+            break;
+        }
+
+        for &c in &buf[0..bytes_read] {
+            if pending > 0 {
+                pending -= 1;
+                continue;
+            }
+
+            if (c >> 3) & FOUR_BYTE_MARKER == FOUR_BYTE_MARKER {
+                pending = 3;
+            } else if (c >> 4) & THREE_BYTE_MARKER == THREE_BYTE_MARKER {
+                pending = 2;
+            } else if (c >> 5) & TWO_BYTE_MARKER == TWO_BYTE_MARKER {
+                pending = 1;
+            }
+
+            count += 1;
+        }
+    }
+
+    if pending > 0 {
+        anyhow::bail!("expected {pending} more bytes for current character");
+    }
+
+    Ok(count)
 }
 
 #[cfg(test)]
