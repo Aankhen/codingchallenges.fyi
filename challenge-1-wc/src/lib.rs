@@ -34,6 +34,25 @@ pub fn count_lines(input: &mut impl Read) -> Result<u64> {
     }
 }
 
+pub fn count_lines_memchr(input: &mut impl Read) -> Result<u64> {
+    use memchr::memmem;
+
+    let finder = memmem::Finder::new("\n");
+
+    let mut buf = [0; READ_BUFFER_SIZE];
+    let mut count = 0;
+
+    loop {
+        let bytes_read = input.read(&mut buf)?;
+
+        if bytes_read == 0 {
+            return Ok(count.try_into()?);
+        }
+
+        count += finder.find_iter(&buf[0..bytes_read]).count();
+    }
+}
+
 pub fn count_words(input: &mut impl Read) -> Result<u64> {
     fn is_whitespace(c: u8) -> bool {
         c == b'\r' || c == b'\n' || c == b' ' || c == b'\t'
@@ -138,6 +157,24 @@ mod test {
             let input = get_test_input();
             assert_eq!(
                 super::count_lines(&mut input.as_slice()).expect("count lines in string"),
+                7_145
+            );
+        }
+    }
+
+    #[test]
+    fn counting_lines_memchr_works() {
+        {
+            let mut input = "Hello world!".as_bytes();
+            assert_eq!(
+                super::count_lines_memchr(&mut input).expect("count lines in string"),
+                0
+            );
+        }
+        {
+            let input = get_test_input();
+            assert_eq!(
+                super::count_lines_memchr(&mut input.as_slice()).expect("count lines in string"),
                 7_145
             );
         }
