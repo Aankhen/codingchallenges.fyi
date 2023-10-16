@@ -41,7 +41,13 @@ fn main() -> Result<()> {
         if args.bytes {
             count_bytes(input)
         } else if args.lines {
-            count_lines(input)
+            // This uses conditional compilation to avoid changing the
+            // CLI.
+            #[cfg(feature = "memchr")]
+            return count_lines_memchr(input);
+
+            #[cfg(not(feature = "memchr"))]
+            return count_lines(input);
         } else if args.words {
             count_words(input)
         } else if args.characters {

@@ -9,3 +9,6 @@ edition = "2021"
 anyhow = { version = "1.0.75", features = ["backtrace"] }
 lexopt = "0.3.0"
 memchr = "2.6.4"
+
+[features]
+memchr = []
