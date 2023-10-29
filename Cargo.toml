@@ -1,5 +1,6 @@
 [workspace]
 members = [
-        "challenge-1-wc"
+        "challenge-1-wc",
+        "challenge-2-json-parser"
 ]
 resolver = "2"
